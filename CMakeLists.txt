@@ -1,53 +1,30 @@
-# Yêu cầu CMake phiên bản 3.20 trở lên
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
+project(bank LANGUAGES CXX)
 
-# Khai báo tên dự án và ngôn ngữ C++
-project(Banking LANGUAGES CXX)
-
-# Sử dụng chuẩn C++20
+# Bắt buộc toàn bộ project build trên C++20, không cho rơi về chuẩn thấp hơn.
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Tìm mọi file .cpp trong src/ và các thư mục con
-# CONFIGURE_DEPENDS giúp CMake cập nhật khi thêm hoặc xóa file .cpp
-file(GLOB_RECURSE BANKING_SOURCES
-    CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-)
+# Tự động gom hết .cpp trong src/ và .h trong include/ -> không cần liệt kê
+# tay từng file, thêm file mới chỉ cần chạy lại cmake.
+file(GLOB_RECURSE BANK_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE BANK_HEADERS CONFIGURE_DEPENDS include/*.h)
 
-# Tìm mọi file .h và .hpp để hiển thị trong project của IDE
-# Các header không cần biên dịch riêng
-file(GLOB_RECURSE BANKING_HEADERS
-    CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
-)
+add_executable(bank_app ${BANK_SOURCES} ${BANK_HEADERS})
 
-# Báo lỗi nếu chưa có file .cpp nào để tạo chương trình
-if(NOT BANKING_SOURCES)
-    message(FATAL_ERROR "Khong tim thay file .cpp trong thu muc src/")
-endif()
+# Tự động lấy toàn bộ thư mục con bên trong include/ (account, card, common, ...)
+# để thêm vào include path -> trong code chỉ cần #include "Money.h" thay vì
+# #include "common/Money.h". Thêm thư mục con mới cũng không cần sửa tay ở đây.
+file(GLOB BANK_INCLUDE_SUBDIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/include/*)
+set(BANK_INCLUDE_DIRS include)
+foreach(item ${BANK_INCLUDE_SUBDIRS})
+    if(IS_DIRECTORY ${item})
+        list(APPEND BANK_INCLUDE_DIRS ${item})
+    endif()
+endforeach()
 
-# Tạo chương trình thực thi tên banking từ các file nguồn và header
-add_executable(banking
-    ${BANKING_SOURCES}
-    ${BANKING_HEADERS}
-)
+target_include_directories(bank_app PRIVATE ${BANK_INCLUDE_DIRS})
 
-# Cho phép compiler tìm header trong include/ và các thư mục con
-target_include_directories(banking PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/common"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/customer"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/account"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/event"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/card"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/repository"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/transaction"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/factory"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/storage"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/presentation"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/service"
-)
-
+# Ép rõ ràng từng target phải dùng tính năng C++20 (không chỉ dựa vào biến global ở trên).
+target_compile_features(bank_app PRIVATE cxx_std_20)

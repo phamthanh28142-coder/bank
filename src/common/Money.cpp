@@ -1,22 +1,50 @@
-#include"Money.h"
-#include<cmath>
-#include<string>
-Money :: Money (  long long vnd ) : vnd ( vnd ) {}
-long long Money ::getVnd ( ) const noexcept {
-    return vnd ; 
+#include "Money.h"
+
+Money::Money(long long value) {
+    vnd = value;
 }
-Money Money :: operator + ( const Money &right ) const {
-    return Money ( vnd + right.vnd ) ; 
+
+long long Money::getVnd() const {
+    return vnd;
 }
-Money Money :: operator - ( const Money &right ) const {
-    return Money ( vnd - right.vnd ) ; 
+
+Money Money::operator+(const Money& other) const {
+    return Money(vnd + other.vnd);
 }
-Money Money :: operator * ( const double &rate  ) const {
-    return Money ( vnd * (rate / 100.0) ) ; 
+
+Money Money::operator-(const Money& other) const {
+    return Money(vnd - other.vnd);
 }
-bool Money :: isNegative ( ) const noexcept {
-    return vnd < 0 ; 
+
+Money Money::operator*(double rate) const {
+    long long result = static_cast<long long>(vnd * rate);
+    return Money(result);
 }
-std :: string Money :: toString ( ) const {
-    return std :: to_string ( vnd) + " Vnd " ; 
+
+bool Money::operator==(const Money& other) const {
+    return vnd == other.vnd;
+}
+
+bool Money::operator<(const Money& other) const {
+    return vnd < other.vnd;
+}
+
+bool Money::operator>(const Money& other) const {
+    return vnd > other.vnd;
+}
+
+bool Money::operator<=(const Money& other) const {
+    return vnd <= other.vnd;
+}
+
+bool Money::operator>=(const Money& other) const {
+    return vnd >= other.vnd;
+}
+
+bool Money::isNegative() const {
+    return vnd < 0;
+}
+
+std::string Money::toString() const {
+    return std::to_string(vnd) + " VND";
 }
